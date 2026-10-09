@@ -635,306 +635,124 @@ export default function App() {
     const handleDelete = async (id) => {
       try {
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', id));
-      } catch (e) {
-        console.error("Erreur supression", e);
+      } catch (err) {
+        console.error("Erreur de suppression:", err);
       }
-    };
-
-    const handleUpdateStatus = async (id, newStatus) => {
-      try {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', id), { status: newStatus });
-      } catch(e) { console.error(e); }
     };
 
     return (
       <div className="p-8 max-w-7xl mx-auto">
         <BackButton />
-        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-800">
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-serif font-bold text-white">
-              Liste des Commandes & États
-            </h2>
-            <p className="text-sm text-gray-400 mt-1">Suivi des confections triées par date d'échéance.</p>
+            <h2 className="text-2xl font-serif font-bold text-white">Gestion des Commandes Atelier</h2>
+            <p className="text-sm text-gray-400 mt-1">Suivi des statuts, essayages et livraisons.</p>
           </div>
           <button 
             onClick={() => navigateTo('new-order')}
-            className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase border border-red-800 shadow-lg hover:opacity-90"
+            className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase border border-red-800 shadow-lg"
             style={{ backgroundColor: theme.bordeaux }}
           >
-            <Plus size={16}/> NOUVELLE COMMANDE
+            <Plus size={16}/> Nouvelle Commande
           </button>
         </div>
 
-        <div className="rounded-2xl shadow-xl overflow-hidden border border-gray-800" style={{ backgroundColor: theme.cardBg }}>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400 bg-black/20">
-                <th className="p-4">CLIENT</th>
-                <th className="p-4">DATE PRÉVUE</th>
-                <th className="p-4">FINANCE (Reste)</th>
-                <th className="p-4">ÉTAT</th>
-                <th className="p-4 text-center">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800/60">
-              {sortedOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-4">
-                    <p className="font-bold text-white text-sm">{order.clientName}</p>
-                    <p className="text-xs text-gray-400">{order.clientContact}</p>
-                  </td>
-                  <td className="p-4 text-sm font-medium text-gray-300">
-                    {order.dueDate ? new Date(order.dueDate).toLocaleDateString() : 'Non définie'}
-                  </td>
-                  <td className="p-4 text-sm text-gray-300">
-                    {order.finance?.remaining ? `${order.finance.remaining} CFA` : 'Soldé'}
-                  </td>
-                  <td className="p-4">
-                    <select 
-                      value={order.status}
-                      onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold outline-none cursor-pointer ${getStatusColor(order.status)} bg-black/40`}
-                    >
-                      <option value="En cours" className="bg-gray-900 text-white">En cours</option>
-                      <option value="Prête" className="bg-gray-900 text-white">Prête</option>
-                      <option value="En attente" className="bg-gray-900 text-white">En attente</option>
-                      <option value="Livrée" className="bg-gray-900 text-white">Livrée</option>
-                    </select>
-                  </td>
-                  <td className="p-4 flex justify-center gap-3 items-center">
-                    <button onClick={() => window.print()} className="text-gray-400 hover:text-white transition-colors" title="Imprimer la fiche atelier">
-                      <Printer size={18} />
-                    </button>
-                    <button onClick={() => handleDelete(order.id)} className="text-red-400 hover:text-red-300 transition-colors" title="Supprimer">
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {sortedOrders.length === 0 && (
-                <tr><td colSpan="5" className="p-12 text-center text-gray-500 text-sm">Aucune commande enregistrée pour le moment.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
-
-  const ClientsView = () => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedClient, setSelectedClient] = useState(null);
-
-    const filteredClients = clients.filter(c => 
-      c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      c.contact?.includes(searchTerm)
-    );
-
-    return (
-      <div className="p-8 max-w-7xl mx-auto flex flex-col h-[calc(100vh-2rem)]">
-        <BackButton />
-        <div className="flex gap-6 flex-1 min-h-0">
-          <div className="w-2/3 flex flex-col h-full">
-            <div className="mb-6">
-              <h2 className="text-2xl font-serif font-bold text-white">
-                Base de Données Clients
-              </h2>
-              <p className="text-sm text-gray-400 mt-1">Répertoire unifié des fiches clients et mensurations.</p>
-            </div>
-            
-            <div className="relative mb-6">
-              <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
-                <Search size={18} />
-              </span>
-              <input 
-                type="text" 
-                placeholder="Rechercher par nom ou numéro de téléphone..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-black/40 border border-gray-800 rounded-xl text-white text-sm focus:outline-none focus:border-red-600"
-              />
-            </div>
-
-            <div className="flex-1 overflow-y-auto pr-2 space-y-3">
-              {filteredClients.map((client) => (
-                <div 
-                  key={client.id}
-                  onClick={() => setSelectedClient(client)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
-                    selectedClient?.id === client.id ? 'bg-red-950/20 border-red-900/60 shadow-lg' : 'bg-[#171923] border-gray-800 hover:border-gray-700'
-                  }`}
-                >
-                  <div>
-                    <h4 className="font-bold text-white text-base">{client.name}</h4>
-                    <p className="text-xs text-gray-400 mt-0.5">{client.contact}</p>
-                  </div>
-                  <div className="text-xs text-gray-400 flex items-center gap-1.5 font-medium bg-black/30 px-3 py-1.5 rounded-lg border border-gray-800">
-                    <Eye size={14} /> Fiche
-                  </div>
-                </div>
-              ))}
-              {filteredClients.length === 0 && (
-                <div className="text-center py-12 text-gray-500 text-sm">Aucun client trouvé.</div>
-              )}
-            </div>
+        {sortedOrders.length === 0 ? (
+          <div className="rounded-2xl border border-gray-800 p-12 text-center text-gray-400" style={{ backgroundColor: theme.cardBg }}>
+            <ShoppingBag size={40} className="mx-auto mb-4 opacity-40" style={{ color: theme.accentGold }} />
+            <p className="text-sm font-medium">Aucune commande enregistrée pour le moment.</p>
           </div>
-
-          <div className="w-1/3">
-            {selectedClient ? (
-              <div className="rounded-2xl shadow-xl border border-gray-800 h-full flex flex-col overflow-hidden" style={{ backgroundColor: theme.cardBg }}>
-                <div className="p-6 border-b border-gray-800 bg-black/20 flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-bold text-white mb-1">{selectedClient.name}</h3>
-                    <p className="text-xs text-gray-400">{selectedClient.contact}</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {sortedOrders.map(order => (
+              <div key={order.id} className="rounded-2xl border border-gray-800 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-lg" style={{ backgroundColor: theme.cardBg }}>
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="font-bold text-white text-base">{order.clientName}</h3>
+                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getStatusColor(order.status)}`}>{order.status || 'En cours'}</span>
                   </div>
-                  <button onClick={() => window.print()} className="p-2 bg-black/40 border border-gray-700 rounded-xl text-gray-300 hover:text-white" title="Imprimer la fiche">
-                    <Printer size={16} />
-                  </button>
+                  <p className="text-xs text-gray-400">Contact : {order.clientContact}</p>
+                  <p className="text-xs text-gray-400 mt-1">Date de RDV / Livraison : <span className="text-white font-medium">{order.dueDate || 'Non définie'}</span></p>
                 </div>
-                
-                <div className="p-6 flex-1 overflow-y-auto space-y-6">
-                  <div>
-                    <h5 className="font-bold text-xs tracking-wider uppercase text-red-400 border-b border-gray-800 pb-2 mb-3">Mesures du Haut</h5>
-                    <div className="grid grid-cols-2 gap-y-2.5 text-xs">
-                      {['epaule', 'longueur_manche', 'tour_manche', 'poitrine', 'ventre', 'longueur_haut', 'col', 'dos'].map(m => (
-                        <div key={m} className="flex justify-between pr-2">
-                          <span className="text-gray-400 capitalize">{m.replace('_', ' ')}:</span>
-                          <span className="font-bold text-white">{selectedClient.measurements?.[m] || '-'} cm</span>
-                        </div>
-                      ))}
-                    </div>
+                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                  <div className="text-right">
+                    <p className="text-sm font-black text-white">{Number(order.finance?.total || 0).toLocaleString()} <span className="text-xs font-normal text-gray-400">CFA</span></p>
+                    <p className="text-[10px] text-amber-400">Reste : {Number(order.finance?.remaining || 0).toLocaleString()} CFA</p>
                   </div>
-                  <div>
-                    <h5 className="font-bold text-xs tracking-wider uppercase text-red-400 border-b border-gray-800 pb-2 mb-3 pt-2">Mesures du Bas</h5>
-                    <div className="grid grid-cols-2 gap-y-2.5 text-xs">
-                      {['ceinture', 'bassin', 'cuisse', 'longueur_bas', 'mollet', 'bas_frappe'].map(m => (
-                        <div key={m} className="flex justify-between pr-2">
-                          <span className="text-gray-400 capitalize">{m.replace('_', ' ')}:</span>
-                          <span className="font-bold text-white">{selectedClient.measurements?.[m] || '-'} cm</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 border-t border-gray-800 bg-black/20">
                   <button 
-                    className="w-full text-white font-bold py-2.5 rounded-xl text-xs tracking-wider uppercase flex justify-center items-center gap-2 border border-red-800 shadow-lg hover:opacity-90"
-                    style={{ backgroundColor: theme.bordeaux }}
-                    onClick={() => navigateTo('new-order')}
+                    onClick={() => handleDelete(order.id)}
+                    className="p-2 rounded-xl bg-red-950/30 border border-red-900/40 text-red-400 hover:bg-red-900/40 transition-colors"
                   >
-                    <ShoppingBag size={16} /> NOUVELLE COMMANDE
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="h-full border border-dashed border-gray-800 rounded-2xl flex items-center justify-center p-8 text-center text-gray-500 text-xs bg-[#171923]">
-                <p>Sélectionnez un client dans la liste pour consulter ses mensurations détaillées.</p>
-              </div>
-            )}
+            ))}
           </div>
-        </div>
+        )}
       </div>
     );
   };
 
-  const AppointmentsView = () => {
-    const [newApt, setNewApt] = useState({ date: '', time: '', clientName: '', purpose: '' });
-
-    const handleAddAppointment = async (e) => {
-      e.preventDefault();
-      if(!newApt.date || !newApt.clientName) return;
-      try {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'appointments'), {
-          ...newApt,
-          status: 'Confirmé',
-          createdAt: new Date().toISOString()
-        });
-        setNewApt({ date: '', time: '', clientName: '', purpose: '' });
-      } catch (err) { console.error(err); }
-    };
-
-    const sortedApts = [...appointments].sort((a, b) => new Date(`${a.date}T${a.time||'00:00'}`) - new Date(`${b.date}T${b.time||'00:00'}`));
-
-    return (
-      <div className="p-8 max-w-6xl mx-auto">
-        <BackButton />
-        <div className="mb-8">
-          <h2 className="text-2xl font-serif font-bold text-white">
-            Planification des Rendez-vous
-          </h2>
-          <p className="text-sm text-gray-400 mt-1">Gestion des essayages et permanences de l'atelier.</p>
+  const ClientsView = () => (
+    <div className="p-8 max-w-7xl mx-auto">
+      <BackButton />
+      <h2 className="text-2xl font-serif font-bold text-white mb-2">Base de Données Clients & Mensurations</h2>
+      <p className="text-sm text-gray-400 mb-6">Répertoire centralisé des mensurations enregistrées en atelier.</p>
+      
+      {clients.length === 0 ? (
+        <div className="rounded-2xl border border-gray-800 p-12 text-center text-gray-400" style={{ backgroundColor: theme.cardBg }}>
+          <Database size={40} className="mx-auto mb-4 opacity-40" style={{ color: theme.accentGold }} />
+          <p className="text-sm font-medium">Aucun client enregistré pour l'instant.</p>
         </div>
-
-        <div className="p-6 rounded-2xl border border-gray-800 mb-8 shadow-lg" style={{ backgroundColor: theme.cardBg }}>
-          <h3 className="font-bold text-sm tracking-wider uppercase text-white mb-4">Ajouter un Rendez-vous</h3>
-          <form onSubmit={handleAddAppointment} className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Date</label>
-              <input type="date" required value={newApt.date} onChange={e=>setNewApt({...newApt, date: e.target.value})} className="w-full p-3 bg-black/40 border border-gray-700 rounded-xl text-white text-sm" />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {clients.map(client => (
+            <div key={client.id} className="rounded-2xl border border-gray-800 p-6 shadow-lg" style={{ backgroundColor: theme.cardBg }}>
+              <div className="flex justify-between items-start mb-4 pb-3 border-b border-gray-800">
+                <div>
+                  <h3 className="font-bold text-white text-base">{client.name}</h3>
+                  <p className="text-xs text-gray-400">{client.contact}</p>
+                </div>
+                <span className="text-[10px] bg-black/40 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-lg">ID Client</span>
+              </div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Dernières mensurations (cm)</h4>
+              <div className="grid grid-cols-3 gap-2 bg-black/30 p-3 rounded-xl border border-gray-800/80">
+                {client.measurements && Object.entries(client.measurements).map(([k, v]) => (
+                  <div key={k} className="text-center p-1.5 bg-black/40 rounded-lg border border-gray-800">
+                    <span className="block text-[10px] uppercase text-gray-400 truncate">{k}</span>
+                    <span className="text-xs font-bold text-white">{v || '-'}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="w-36">
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Heure</label>
-              <input type="time" value={newApt.time} onChange={e=>setNewApt({...newApt, time: e.target.value})} className="w-full p-3 bg-black/40 border border-gray-700 rounded-xl text-white text-sm" />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Client</label>
-              <input type="text" required placeholder="Nom du client" value={newApt.clientName} onChange={e=>setNewApt({...newApt, clientName: e.target.value})} className="w-full p-3 bg-black/40 border border-gray-700 rounded-xl text-white text-sm" />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Objet</label>
-              <input type="text" placeholder="Ex: Prise de mesure, Essai..." value={newApt.purpose} onChange={e=>setNewApt({...newApt, purpose: e.target.value})} className="w-full p-3 bg-black/40 border border-gray-700 rounded-xl text-white text-sm" />
-            </div>
-            <button type="submit" className="px-6 py-3 text-white rounded-xl text-xs font-bold uppercase tracking-wider border border-red-800 shadow-lg hover:opacity-90" style={{ backgroundColor: theme.bordeaux }}>
-              Ajouter
-            </button>
-          </form>
+          ))}
         </div>
+      )}
+    </div>
+  );
 
-        <div className="rounded-2xl shadow-xl overflow-hidden border border-gray-800" style={{ backgroundColor: theme.cardBg }}>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-800 text-xs font-bold uppercase tracking-wider text-gray-400 bg-black/20">
-                <th className="p-4">DATE & HEURE</th>
-                <th className="p-4">CLIENT</th>
-                <th className="p-4">OBJET</th>
-                <th className="p-4">STATUT</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800/60">
-              {sortedApts.map((apt) => (
-                <tr key={apt.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-4 text-sm font-medium text-gray-300">
-                    {new Date(apt.date).toLocaleDateString()} à {apt.time || '--:--'}
-                  </td>
-                  <td className="p-4 font-bold text-white text-sm">{apt.clientName}</td>
-                  <td className="p-4 text-sm text-gray-400">{apt.purpose}</td>
-                  <td className="p-4">
-                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-lg text-xs font-bold">
-                      {apt.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {sortedApts.length === 0 && (
-                <tr><td colSpan="4" className="p-12 text-center text-gray-500 text-sm">Aucun rendez-vous prévu.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+  const AppointmentsView = () => (
+    <div className="p-8 max-w-7xl mx-auto">
+      <BackButton />
+      <h2 className="text-2xl font-serif font-bold text-white mb-2">Planning des Rendez-vous & Essayages</h2>
+      <p className="text-sm text-gray-400 mb-6">Gestion des permanences et des agendas de l'atelier.</p>
+      <div className="rounded-2xl border border-gray-800 p-12 text-center text-gray-400" style={{ backgroundColor: theme.cardBg }}>
+        <Calendar size={40} className="mx-auto mb-4 opacity-40" style={{ color: theme.accentGold }} />
+        <p className="text-sm font-medium">Le planning des essayages est synchronisé avec les dates de livraison des commandes.</p>
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen text-gray-100 font-sans antialiased selection:bg-red-900 selection:text-white" style={{ backgroundColor: theme.bg }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: theme.bg, color: theme.text }}>
       <Navigation />
       <main className="flex-1 overflow-y-auto">
         {activeTab === 'home' && <HomeView />}
         {activeTab === 'analytics' && <AnalyticsView />}
-        {activeTab === 'new-order' && <NewOrderForm />}
-        {activeTab === 'orders' && <OrdersView />}
         {activeTab === 'clients' && <ClientsView />}
+        {activeTab === 'orders' && <OrdersView />}
+        {activeTab === 'new-order' && <NewOrderForm />}
         {activeTab === 'appointments' && <AppointmentsView />}
       </main>
     </div>
